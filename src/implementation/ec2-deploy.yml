@@ -1,0 +1,14 @@
+---
+- name: Install AWS CLI
+  user: ubuntu
+  sudo: True
+  hosts: all
+# - name: deploy service ec2 instance
+#   hosts: localhost
+#   gather_facts: False
+  
+  vars_files:
+    - common_vars/vars.yml
+
+  roles:
+    - deploy
