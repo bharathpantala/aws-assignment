@@ -1,0 +1,10 @@
+---
+- name: provision ec2 instance
+  hosts: localhost
+  gather_facts: False
+
+  vars_files:
+    - common_vars/vars.yml
+
+  roles:
+    - ec2

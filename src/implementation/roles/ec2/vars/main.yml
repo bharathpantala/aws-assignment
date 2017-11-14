@@ -1,0 +1,4 @@
+---
+ami: ami-3c374c53
+instance_type: t2.micro
+vpc_subnet_id: subnet-68bb4f00
