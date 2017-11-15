@@ -1,1 +1,37 @@
-requirements
+#+TITLE: Requirements for Provisioning AWS VPC, EC2 
+#+AUTHOR: Sripathi kammari
+#+DATE: [2017-11-15 Wed]
+#+PROPERTY: results output
+#+PROPERTY: exports code
+#+SETUPFILE: ../org-templates/level-1.org
+#+options: ^:nil
+#+LATEX: Literal LaTeX code for export
+
+* Introduction 
+  This document illustrates the requirements to provision
+  the VPC, Subnets and EC2 instances as per assignemnt
+  mentioned at [[http://wiki.polyglotit.com/index.php/Interview-assignment3][link]]
+
+
+* Requirements
+
+** Req1
+   - create a VPC for a given AWS region (Mumbai)
+
+** Req2 
+   - create a public and private subnets for a given region
+     of AWS VPC (Mumbai)
+
+** Req3
+   - create an EC2 instance for a given VPC private subnet
+     (Mumbai) using Ansible tool
+   - Install the following packages in EC2 VM
+     + Web server Apache
+     + NTP client
+     + Code deployment of git repository mentioned at
+       https://github.com/demoglot/html-samples-food.git        
+
+
+
+
+

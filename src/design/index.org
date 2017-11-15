@@ -1,1 +1,19 @@
-desing
+#+TITLE: Design of AWS Assignment
+#+AUTHOR: Sripathi Kammari
+#+DATE: [2017-11-15 Wed]
+#+SETUPFILE: ../org-templates/level-1.org
+#+TAGS: boilerplate(b)
+#+EXCLUDE_TAGS: boilerplate
+#+OPTIONS: ^:nil
+
+
+* Introduction 
+  This document illustrates the =design= of the AWS cloud
+  assignment mentioned at [[http://wiki.polyglotit.com/index.php/Interview-assignment3][link]]
+
+
+* Design diagram
+
+#+BEGIN_HTML
+ To be updated
+#+END_HTML
