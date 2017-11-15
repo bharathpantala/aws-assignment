@@ -1,0 +1,303 @@
+#+TITLE: Automate website deployment on VPC (private subnet)
+#+AUTHOR: Sripathi Kammari
+#+DATE: [2017-11-15 Wed]
+#+SETUPFILE: ../org-templates/level-1.org
+#+TAGS: boilerplate(b)
+#+EXCLUDE_TAGS: boilerplate
+#+OPTIONS: ^:nil
+
+* Introduction
+  This document describes the ansible code required to
+  create AWS VPC and EC2 VM.
+* provision vpc
+#+NAME: provision_vpc
+#+BEGIN_SRC yml
+---
+- name: create VPC
+  hosts: localhost
+  gather_facts: False
+
+  vars_files:
+    - common_vars/main.yml
+
+  roles:
+    - vpc
+
+#+END_SRC
+* deploy ec2
+#+NAME: deploy_ec2
+#+BEGIN_SRC yml
+---
+- name: deploy the web app on EC2 VM
+  user: ubuntu
+  sudo: True
+  hosts: all
+
+  vars_files:
+    - common_vars/main.yml
+
+  roles:
+    - ec2
+
+#+END_SRC
+* common_vars
+#+NAME: common_vars
+#+BEGIN_SRC yml
+---
+keypair: polygot # This file should exist in current directory
+aws_access_key: 
+aws_secret_key: 
+aws_region: ap-south-1
+ami: ami-3c374c53
+instance_type: t2.micro
+#+END_SRC
+* roles
+** vpc
+*** vars
+#+NAME: vpc_vars
+#+BEGIN_SRC yml
+---
+vpc_name: ployglot-test
+vpc_cidr_block: 10.0.0.0/16
+public_subnet_1_cidr: 10.0.0.0/24
+private_subnet_1_cidr: "10.0.1.0/24"
+
+#+END_SRC
+*** tasks
+**** create vpc    
+#+NAME: create_vpc
+#+BEGIN_SRC yml
+
+---
+- name: create vpc
+  ec2_vpc_net:
+         name: "{{ vpc_name }}"
+         cidr_block: "{{ vpc_cidr_block }}"
+         region: "{{ aws_region }}"
+         state: "present"
+         aws_access_key: "{{ aws_access_key }}"
+         aws_secret_key: "{{ aws_secret_key }}"
+
+  register: my_vpc
+
+- name:  store vpc_id in variable
+  set_fact:
+         vpc_id: "{{ my_vpc.vpc.id }}"
+
+#+END_SRC
+**** create public sub-net in vpc 
+#+NAME: create_vpc_public_subnet
+#+BEGIN_SRC yml
+
+- name: create public subnet
+  ec2_vpc_subnet:
+    state:            "present"
+    vpc_id:           "{{ vpc_id }}"
+    cidr:             "{{ public_subnet_1_cidr }}"
+    az:               "{{ aws_region }}a"
+    region:           "{{ aws_region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+
+    resource_tags:
+         Name:           "public subnet"
+  register: my_public_subnet
+
+
+- name: store public subnet id in variable
+  set_fact:
+         public_subnet_id: "{{ my_public_subnet.subnet.id }}"
+
+#+END_SRC
+**** create private sub-net in vpc
+#+NAME: create_vpc_private_subnet
+#+BEGIN_SRC yml
+
+- name: create private subnet
+  ec2_vpc_subnet:
+    state: "present"
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ private_subnet_1_cidr }}"
+    az: "{{ aws_region }}a"
+    region: "{{ aws_region }}"
+    resource_tags:
+         Name: "Private Subnet"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+
+  register:  my_private_subnet
+
+- name: store private subnet id in variable
+  set_fact:
+    private_subnet_id: "{{ my_private_subnet.subnet.id }}"
+
+#+END_SRC
+**** create gateway for vpc
+#+NAME: create_vpc_internet_gateway
+#+BEGIN_SRC yml
+
+- name: create Internet Gateway for VPC
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ aws_region }}"
+    state: "present"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+
+  register: my_vpc_igw
+
+
+- name: store Internet Gateway ID in variable
+  set_fact:
+    igw_id: "{{ my_vpc_igw.gateway_id }}"
+
+#+END_SRC
+**** create route table for vpc gateway
+#+NAME: create_route_table_for_vpc_gateway
+#+BEGIN_SRC yml
+
+- name: set up route table for vpc gateway
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ aws_region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+
+    routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw_id }}"
+  register: public_route_table
+
+
+#+END_SRC
+**** create security group
+#+NAME: create_security_group
+#+BEGIN_SRC yml
+
+- name: create security group to all connections
+  ec2_group:
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: sg_http
+    description: Security group for HTTP access
+    rules:
+      - proto: all
+        from_port: 0
+        to_port: 65535
+        cidr_ip: 0.0.0.0/0
+  register: sg_http
+
+#+END_SRC
+
+**** create EC2 instance in private sub-net
+#+NAME: create_ec2_instance_in_private_subnet
+#+BEGIN_SRC yml
+
+- name: create an ec2 instance in private subnet
+  ec2:
+     aws_access_key: "{{ aws_access_key }}"
+     aws_secret_key: "{{ aws_secret_key }}"
+     key_name: "{{ keypair }}"
+     group: sg_http
+     instance_type: "{{ instance_type }}"
+     image: "{{ ami }}"
+     wait: true
+     region: "{{ aws_region }}"
+     count: 1
+     count_tag:
+        Name: polygot-web-app
+     instance_tags:
+        Name: polygot-web-app
+     vpc_subnet_id: "{{ private_subnet_id }}"
+     assign_public_ip: yes
+  register: ec2
+
+#+END_SRC
+** ec2
+*** tasks
+**** update and install apache2
+#+NAME: ec2_install_apache2
+#+BEGIN_SRC yml 
+---
+
+- name: install apache2 webserver
+  apt:
+     update_cache: yes
+     name: apache2
+     state: present
+
+#+END_SRC
+**** install ntp package
+#+NAME: ec2_install_ntp
+#+BEGIN_SRC yml 
+
+- name: install ntp package
+  apt:
+     name=ntp
+     state=present
+#+END_SRC
+**** install git
+#+NAME: ec2_install_git
+#+BEGIN_SRC yml 
+
+- name: install git
+  apt:
+      name=git
+      state=present
+#+END_SRC
+**** clone repo and deploy the application
+#+NAME: ec2_install_app
+#+BEGIN_SRC yml 
+
+- name: clone the repository
+
+  git:
+    repo: https://github.com/demoglot/html-samples-food.git
+    dest: /var/www/html/polyglot
+    update: yes
+    version: HEAD
+    force: yes
+    ssh_opts: -o StrictHostKeyChecking=no
+
+#+END_SRC
+* Tangle
+** common_vars  
+#+BEGIN_SRC yml :tangle common_vars/main.yml :eval no :noweb yes
+<<common_vars>>
+#+END_SRC
+
+** vpc role tasks 
+#+BEGIN_SRC yml :tangle roles/vpc/tasks/main.yml :eval no :noweb yes
+<<create_vpc>>
+<<create_vpc_public_subnet>>
+<<create_vpc_private_subnet>>
+<<create_vpc_internet_gateway>>
+<<create_route_table_for_vpc_gateway>>
+<<create_security_group>>
+<<create_ec2_instance_in_private_subnet>>
+#+END_SRC
+
+** vpc role vars
+#+BEGIN_SRC yml :tangle roles/vpc/vars/main.yml :eval no :noweb yes
+<<vpc_vars>>
+#+END_SRC
+
+** ec2 role tasks
+#+BEGIN_SRC yml :tangle roles/ec2/tasks/main.yml :eval no :noweb yes
+<<ec2_install_apache2>>
+<<ec2_install_ntp>>
+<<ec2_install_git>>
+<<ec2_install_app>>
+#+END_SRC
+
+** provision vpc
+
+#+BEGIN_SRC yml :tangle provision-vpc.yml :eval no :noweb yes
+<<provision_vpc>>
+#+END_SRC
+
+** deploy app on ec2
+
+#+BEGIN_SRC yml :tangle deploy-ec2.yml :eval no :noweb yes
+<<deploy_ec2>>
+#+END_SRC
