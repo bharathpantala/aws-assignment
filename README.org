@@ -1,4 +1,6 @@
 * Introduction
+  This repository contains the model, implementation and
+  automation scripts as per assignment given at [[http://wiki.polyglotit.com/index.php/Interview-assignment3][link]]
 * Run code in development environment
 ** Pre requisites
    For successful running of this code following software
