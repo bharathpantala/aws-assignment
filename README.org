@@ -1,0 +1,107 @@
+* Introduction
+* Run code in development environment
+** Pre requisites
+   For successful running of this code following software
+   pre requisites has to be installed
+   
+   - OS (GNU/Linux any Debian base OS (Ubuntu, Debian, Kubuntu, Edubuntu..etc))
+   - emacs
+     + Install emacs
+       #+BEGIN_EXAMPLE
+       sudo apt-get update -y
+       sudo apt-get install emacs -y
+       #+END_EXAMPLE
+   - python boto package
+     #+BEGIN_EXAMPLE
+     sudo apt-get install python-pip
+     sudo pip install boto
+     #+END_EXAMPLE
+   - AWS =.pem= file to access the =EC2 VM=
+
+** Steps to run the code
+   1) Clone the repository
+      #+BEGIN_EXAMPLE
+      git clone https://github.com/ksripathi/aws-assignment
+      #+END_EXAMPLE
+   2) Change directory to =aws-assignment=
+      #+BEGIN_EXAMPLE
+      cd aws-assignment
+      #+END_EXAMPLE
+   3) Run =make= command to tangle the =yml= code from =org=
+      files. And provide argument =readtheorg=true= to view
+      the html documents in =readtheorg= template format
+      #+BEGIN_EXAMPLE
+      make readtheorg=true
+      #+END_EXAMPLE
+   4) Above step(3) generates =implementation= folder under
+      =build/code/= directory with following directory
+      structure
+      #+BEGIN_EXAMPLE
+      ├── implementation
+      │   ├── common_vars
+      │   │   └── main.yml
+      │   ├── deploy-ec2.yml
+      │   ├── provision-vpc.yml
+      │   └── roles
+      │       ├── ec2
+      │       │   └── tasks
+      │       │       └── main.yml
+      │       └── vpc
+      │           ├── tasks
+      │           │   └── main.yml
+      │           └── vars
+      │               └── main.yml
+      └── VERSION
+
+
+      #+END_EXAMPLE
+   5) Change directory to =implementation= folder
+      #+BEGIN_EXAMPLE
+      cd build/code/implementation
+      #+END_EXAMPLE
+   6) Get the =.pem= key file and copy to
+      =build/code/implementation= directory
+   7) Configure the common variables at
+      =common_vars/main.yml= file
+   8) Run the following playbook to provision VPC and EC2 VM
+      #+BEGIN_EXAMPLE
+      $ ansible-playbook provision-vpc.yml 
+      #+END_EXAMPLE
+   9) Above step(8) creates following
+
+      - VPC
+
+      - Public subnet
+
+      - private subnet
+
+      - gateway to VPC
+
+      - routing table to gateway
+
+      - EC2 VM in private VPC subnet
+
+   10) Above step(9) creates EC2 VM . Go to AWS EC2
+       dashboard, get the public ip add make an
+       entry inside =inventory= file which is at
+       =build/code/implementation= folder
+
+   11) Run the following playbook to deploy the web-app on
+       AWS EC2 VM
+       #+BEGIN_EXAMPLE
+       $ ansible-playbook -i inventory deploy-ec2.yml
+       #+END_EXAMPLE
+
+   12) Above step(3) deploy the application in give AWS EC2 VM
+
+   13) Access the application from browser
+       #+BEGIN_EXAMPLE
+       firefox http://public-ip-of-ec2-vm/polyglot
+       #+END_EXAMPLE
+      
+
+
+
+
+
+
