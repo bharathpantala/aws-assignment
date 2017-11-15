@@ -10,6 +10,23 @@
   This document describes the ansible code required to
   create AWS VPC and EC2 VM.
 * provision vpc
+  - VPC ::
+           Amazon Virtual Private Cloud (Amazon VPC) lets
+           you provision a logically isolated section of the
+           Amazon Web Services (AWS) cloud where you can
+           launch AWS resources in a virtual network that
+           you define. You have complete control over your
+           virtual networking environment, including
+           selection of your own IP address range, creation
+           of subnets, and configuration of route tables and
+           network gateways.
+           
+  - Playbook Narration ::
+
+       Following playbook reads the variables from
+       =common_vars= folder and executes the =vpc=
+       role. This playbook uses =boto= python package to
+       connect to the =AWS= via REST API(s)
 #+NAME: provision_vpc
 #+BEGIN_SRC yml
 ---
@@ -25,6 +42,13 @@
 
 #+END_SRC
 * deploy ec2
+  - Playbook Narration ::
+
+       Following playbook reads the variables from
+       =common_vars= folder and executes the =ec2=
+       role. This playbook uses =boto= python package to
+       connect to the =AWS= via REST API(s)
+
 #+NAME: deploy_ec2
 #+BEGIN_SRC yml
 ---
@@ -41,6 +65,8 @@
 
 #+END_SRC
 * common_vars
+  This folder contains all the variables which are common
+  across the roles
 #+NAME: common_vars
 #+BEGIN_SRC yml
 ---
@@ -52,8 +78,10 @@ ami: ami-3c374c53
 instance_type: t2.micro
 #+END_SRC
 * roles
+  It is a module which does the particular job
 ** vpc
 *** vars
+    These variables have scope to only this role
 #+NAME: vpc_vars
 #+BEGIN_SRC yml
 ---
@@ -65,6 +93,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
 #+END_SRC
 *** tasks
 **** create vpc    
+     This task creates the VPC
 #+NAME: create_vpc
 #+BEGIN_SRC yml
 
@@ -86,6 +115,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+END_SRC
 **** create public sub-net in vpc 
+     This task creates the public subnet for a given VPC 
 #+NAME: create_vpc_public_subnet
 #+BEGIN_SRC yml
 
@@ -110,6 +140,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+END_SRC
 **** create private sub-net in vpc
+     This task creates the private subnet for a given VPC 
 #+NAME: create_vpc_private_subnet
 #+BEGIN_SRC yml
 
@@ -133,6 +164,8 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+END_SRC
 **** create gateway for vpc
+     This task creates the gateway to the VPC otherwise
+     outgoing packet do not reach cloud network
 #+NAME: create_vpc_internet_gateway
 #+BEGIN_SRC yml
 
@@ -153,6 +186,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+END_SRC
 **** create route table for vpc gateway
+     This task creates the routing table for a gateway id
 #+NAME: create_route_table_for_vpc_gateway
 #+BEGIN_SRC yml
 
@@ -171,6 +205,8 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+END_SRC
 **** create security group
+     This task creates security group and it acts like a
+     firewall
 #+NAME: create_security_group
 #+BEGIN_SRC yml
 
@@ -192,6 +228,8 @@ private_subnet_1_cidr: "10.0.1.0/24"
 #+END_SRC
 
 **** create EC2 instance in private sub-net
+     This task creates the EC2 instance inside VPC private
+     subnet and assigns public ip
 #+NAME: create_ec2_instance_in_private_subnet
 #+BEGIN_SRC yml
 
@@ -218,6 +256,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
 ** ec2
 *** tasks
 **** update and install apache2
+     This task updates the VM and install Apache2 web server 
 #+NAME: ec2_install_apache2
 #+BEGIN_SRC yml 
 ---
@@ -230,6 +269,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+END_SRC
 **** install ntp package
+     This task install the NTP package
 #+NAME: ec2_install_ntp
 #+BEGIN_SRC yml 
 
@@ -239,6 +279,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
      state=present
 #+END_SRC
 **** install git
+     This task creates the git package
 #+NAME: ec2_install_git
 #+BEGIN_SRC yml 
 
@@ -248,6 +289,7 @@ private_subnet_1_cidr: "10.0.1.0/24"
       state=present
 #+END_SRC
 **** clone repo and deploy the application
+     This task deploys the app in apache2 server
 #+NAME: ec2_install_app
 #+BEGIN_SRC yml 
 

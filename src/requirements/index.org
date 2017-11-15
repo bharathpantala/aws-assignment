@@ -9,7 +9,7 @@
 
 * Introduction 
   This document illustrates the requirements to provision
-  the VPC, Subnets and EC2 instances as per assignemnt
+  the VPC, Subnets and EC2 instances as per assignment
   mentioned at [[http://wiki.polyglotit.com/index.php/Interview-assignment3][link]]
 
 
