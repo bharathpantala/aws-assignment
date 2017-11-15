@@ -6,17 +6,31 @@
    
    - OS (GNU/Linux any Debian base OS (Ubuntu, Debian, Kubuntu, Edubuntu..etc))
    - emacs
-     + Install emacs
+     + Installation 
        #+BEGIN_EXAMPLE
        sudo apt-get update -y
        sudo apt-get install emacs -y
        #+END_EXAMPLE
-   - python boto package
+   - Ansible > v1.x.x 
+     + Installation
+       #+BEGIN_EXAMPLE
+       sudo apt-get install software-properties-common -y
+       sudo apt-add-repository ppa:ansible/ansible
+       sudo apt-get update -y
+       sudo apt-get install ansible -y
+       #+END_EXAMPLE
+   - boto
+     + Installation  
+       #+BEGIN_EXAMPLE
+       sudo apt-get install python-pip
+       sudo pip install boto
+       #+END_EXAMPLE
+   - AWS EC2 service provided =.pem= file to access the =EC2
+     VM=
+   - Git
      #+BEGIN_EXAMPLE
-     sudo apt-get install python-pip
-     sudo pip install boto
+     sudo apt-get install git -y
      #+END_EXAMPLE
-   - AWS =.pem= file to access the =EC2 VM=
 
 ** Steps to run the code
    1) Clone the repository

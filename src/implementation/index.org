@@ -44,9 +44,9 @@
 #+NAME: common_vars
 #+BEGIN_SRC yml
 ---
-keypair: polygot # This file should exist in current directory
-aws_access_key: 
-aws_secret_key: 
+keypair: ../polygot # This file should exist in current directory
+aws_access_key: place-key-here
+aws_secret_key: place-key-here
 aws_region: ap-south-1
 ami: ami-3c374c53
 instance_type: t2.micro
@@ -178,6 +178,8 @@ private_subnet_1_cidr: "10.0.1.0/24"
   ec2_group:
     region: "{{ aws_region }}"
     vpc_id: "{{ vpc_id }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
     name: sg_http
     description: Security group for HTTP access
     rules:
