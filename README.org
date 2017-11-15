@@ -19,11 +19,11 @@
        sudo apt-get update -y
        sudo apt-get install ansible -y
        #+END_EXAMPLE
-   - boto
+   - boto & boto3
      + Installation  
        #+BEGIN_EXAMPLE
-       sudo apt-get install python-pip
-       sudo pip install boto
+       sudo apt-get install python-pip -y
+       sudo pip install boto boto3
        #+END_EXAMPLE
    - AWS EC2 service provided =.pem= file to access the =EC2
      VM=
@@ -42,12 +42,17 @@
       cd aws-assignment
       #+END_EXAMPLE
    3) Run =make= command to tangle the =yml= code from =org=
-      files. And provide argument =readtheorg=true= to view
-      the html documents in =readtheorg= template format
+      files. And argument =readtheorg=true= make the
+      documentation in =sphinx= template
       #+BEGIN_EXAMPLE
       make readtheorg=true
       #+END_EXAMPLE
-   4) Above step(3) generates =implementation= folder under
+   4) Above step(3) creates =code= and =docs= folders inside
+      =build= folder. =code= contains =yml= files whereas
+      =docs= contains narration of the =yml= code in html
+      with =sphinx= templates
+
+   5) Above step(3) generates =implementation= folder under
       =build/code/= directory with following directory
       structure
       #+BEGIN_EXAMPLE
@@ -69,46 +74,64 @@
 
 
       #+END_EXAMPLE
-   5) Change directory to =implementation= folder
+   6) Change directory to =implementation= folder
       #+BEGIN_EXAMPLE
       cd build/code/implementation
       #+END_EXAMPLE
-   6) Get the =.pem= key file and copy to
+   7) Copy the obtained =.pem= key file to
       =build/code/implementation= directory
-   7) Configure the common variables at
-      =common_vars/main.yml= file
-   8) Run the following playbook to provision VPC and EC2 VM
+   8) Make sure that file =file.pem= has =400= permission
+      set
       #+BEGIN_EXAMPLE
-      $ ansible-playbook provision-vpc.yml 
+      chmod 400 file.pem
       #+END_EXAMPLE
-   9) Above step(8) creates following
+   9) Configure the common variables in
+      =common_vars/main.yml= file as below
+      #+BEGIN_EXAMPLE
+      keypair: polygot # pem key file name without .pem extension
+      aws_access_key: place-key-here
+      aws_secret_key: place-key-here
+      aws_region: ap-south-1
+      ami: ami-3c374c53
+      instance_type: t2.micro
 
-      - VPC
-
-      - Public subnet
-
-      - private subnet
-
-      - gateway to VPC
-
-      - routing table to gateway
-
-      - EC2 VM in private VPC subnet
-
-   10) Above step(9) creates EC2 VM . Go to AWS EC2
-       dashboard, get the public ip add make an
-       entry inside =inventory= file which is at
-       =build/code/implementation= folder
-
-   11) Run the following playbook to deploy the web-app on
-       AWS EC2 VM
+      #+END_EXAMPLE
+   10) Run the following playbook to provision VPC and EC2 VM
        #+BEGIN_EXAMPLE
-       $ ansible-playbook -i inventory deploy-ec2.yml
+       $ ansible-playbook provision-vpc.yml 
        #+END_EXAMPLE
+   11) Above step(10) does the following
+       
+       - creation of VPC in Mumbai region
+         
+       - creation public subnet inside VPC
+         
+       - creation private subnet inside VPC
+         
+       - adds gateway to VPC
+         
+       - adds routing table to gateway
+         
+       - creation of EC2 VM inside private VPC subnet
 
-   12) Above step(3) deploy the application in give AWS EC2 VM
+   12) Visit AWS EC2 dashboard and get the public ip and
+       configure the following variables values at
+       =build/code/implementation/inventory= file as below
 
-   13) Access the application from browser
+       - Replace the variable =ansible_host= value from
+         =127.0.0.1= to =Pubclic IP of EC2 VM=
+
+       - Replace the variable =ansible_ssh_private_key_file=
+         value from =file-name.pem= to =file.pem=
+
+   13) Run the following playbook to deploy the web-app on
+       AWS EC2 VM inside VPC private subnet
+      #+BEGIN_EXAMPLE
+      $ cd build/code/implementation
+      $ ansible-playbook -i inventory deploy-ec2.yml
+      #+END_EXAMPLE
+
+   14) Access the web application from browser
        #+BEGIN_EXAMPLE
        firefox http://public-ip-of-ec2-vm/polyglot
        #+END_EXAMPLE

@@ -44,7 +44,7 @@
 #+NAME: common_vars
 #+BEGIN_SRC yml
 ---
-keypair: ../polygot # This file should exist in current directory
+keypair: polygot # pem key file name without .pem extension
 aws_access_key: place-key-here
 aws_secret_key: place-key-here
 aws_region: ap-south-1
@@ -262,6 +262,12 @@ private_subnet_1_cidr: "10.0.1.0/24"
     ssh_opts: -o StrictHostKeyChecking=no
 
 #+END_SRC
+* Inventory file
+#+NAME: inventory
+#+BEGIN_SRC ini
+ec2-instance ansible_host=127.0.0.1 ansible_user=ubuntu ansible_ssh_private_key_file=file-name.pem
+#+END_SRC  
+
 * Tangle
 ** common_vars  
 #+BEGIN_SRC yml :tangle common_vars/main.yml :eval no :noweb yes
@@ -302,4 +308,8 @@ private_subnet_1_cidr: "10.0.1.0/24"
 
 #+BEGIN_SRC yml :tangle deploy-ec2.yml :eval no :noweb yes
 <<deploy_ec2>>
+#+END_SRC
+** Inventory
+#+BEGIN_SRC ini :tangle inventory :eval no :noweb yes
+<<inventory>>
 #+END_SRC
